@@ -5,34 +5,33 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     Exit
 }
 
-# Check for PSWindowsUpdate module
+# Check for PSWindowsUpdate module, search for updates if allowed
+. "$PSScriptRoot\functions.ps1"
 $moduleName = "PSWindowsUpdate"
 $installedModules = Get-Module -Name $moduleName -ListAvailable
-Write-Host "Checking for $moduleName module"
+Write-Host "Checking for $moduleName"
 if ($installedModules) {
-    Write-Host "$moduleName module is installed"
+    Write-Host "$moduleName is installed"
+    Search-Updates
 } 
 else {
-    Write-Host "$moduleName module is not installed; installing now"
-    Install-Module $moduleName
-    Write-Host "Done"
+    $response = Read-Host "$moduleName is required for this action but is not installed. Download and install now? [y] or [n]"
+    if ($response -eq "y" -or $response -eq "Y") {
+        Install-Module $moduleName
+        Write-Host "Done"
+        Search-Updates
+    }
 }
 Start-Sleep -Seconds 1
 
-# Search for available Windows updates
-Write-Host "Checking for Windows updates"
-Get-WindowsUpdate -AcceptAll -Install
-Write-Host "Done"
-Start-Sleep -Seconds 1
-
 # Run "winget upgrade --all"
-Write-Host "Running 'winget upgrade --all'"
+Write-Host "Checking for desktop application updates"
 Start-Process -FilePath "winget" -ArgumentList "upgrade --all" -NoNewWindow -Wait
 Write-Host "Done"
 Start-Sleep -Seconds 1
 
-# Prompt the user to open the Microsoft Store
-$response = Read-Host "Open the Microsoft Store? [y] or [n]"
+# Prompt the user to open Microsoft Store
+$response = Read-Host "Open Microsoft Store? [y] or [n]"
 if ($response -eq "y" -or $response -eq "Y") {
     Start-Process "ms-windows-store:"
 }
