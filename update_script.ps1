@@ -10,18 +10,30 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 $moduleName = "PSWindowsUpdate"
 $installedModules = Get-Module -Name $moduleName -ListAvailable
 Write-Host "Checking for $moduleName"
+$exitVar = 0
 if ($installedModules) {
     Write-Host "$moduleName is installed"
     Search-Updates
-} 
+}
 else {
-    $response = Read-Host "$moduleName is required for this action but is not installed. Download and install now? [y] or [n]"
-    if ($response -eq "y" -or $response -eq "Y") {
-        Install-Module $moduleName
-        Write-Host "Done"
-        Search-Updates
+    while ($exitVar -ne 1) {
+        $response = Read-Host "$moduleName is required for this action but is not installed. Download and install now? [y] or [n]"
+        if ($response -eq "y" -or $response -eq "Y") {
+            Install-Module $moduleName
+            Write-Host "Done"
+            Search-Updates
+            $exitVar = 1
+        }
+        elseif ($response -eq "n" -or $response -eq "N") {
+            Write-Host "Skipped $moduleName"
+            $exitVar = 1
+        }
+        else {
+            Write-Host "Invalid response, please try again"
+        }
     }
 }
+$exitVar = 0
 Start-Sleep -Seconds 1
 
 # Run "winget upgrade --all"
@@ -31,9 +43,19 @@ Write-Host "Done"
 Start-Sleep -Seconds 1
 
 # Prompt the user to open Microsoft Store
-$response = Read-Host "Open Microsoft Store? [y] or [n]"
-if ($response -eq "y" -or $response -eq "Y") {
-    Start-Process "ms-windows-store:"
+while ($exitVar -ne 1) {
+    $response = Read-Host "Open Microsoft Store? [y] or [n]"
+    if ($response -eq "y" -or $response -eq "Y") {
+        Start-Process "ms-windows-store:"
+        $exitVar = 1
+    }
+    elseif ($response -eq "n" -or $response -eq "N") {
+        Write-Host "Skipped Microsoft Store"
+        $exitVar = 1
+    }
+    else {
+        Write-Host "Invalid response, please try again"
+    }
 }
 
 # Pause before closing
